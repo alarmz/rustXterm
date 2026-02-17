@@ -1,0 +1,14 @@
+[package]
+name = "rustxterm-terminal"
+description = "Terminal emulation and PTY handling for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+portable-pty = { workspace = true }
+vte = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

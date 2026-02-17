@@ -1,0 +1,14 @@
+[package]
+name = "rustxterm-network-tools"
+description = "Network utilities for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+trust-dns-resolver = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }

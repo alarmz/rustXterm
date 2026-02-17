@@ -1,0 +1,13 @@
+[package]
+name = "rustxterm-serial"
+description = "Serial port handler for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+serialport = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

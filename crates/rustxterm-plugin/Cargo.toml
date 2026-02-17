@@ -1,0 +1,14 @@
+[package]
+name = "rustxterm-plugin"
+description = "Plugin system framework for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+libloading = "0.8"

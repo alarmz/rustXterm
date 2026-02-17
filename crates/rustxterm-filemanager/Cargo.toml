@@ -1,0 +1,14 @@
+[package]
+name = "rustxterm-filemanager"
+description = "SFTP and local file browser for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+rustxterm-ssh = { path = "../rustxterm-ssh" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }

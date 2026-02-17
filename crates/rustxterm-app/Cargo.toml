@@ -1,0 +1,35 @@
+[package]
+name = "rustxterm-app"
+description = "Tauri application entry point for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "rustxterm-app"
+path = "src/main.rs"
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+rustxterm-terminal = { path = "../rustxterm-terminal" }
+rustxterm-session = { path = "../rustxterm-session" }
+rustxterm-ssh = { path = "../rustxterm-ssh" }
+rustxterm-telnet = { path = "../rustxterm-telnet" }
+rustxterm-rdp = { path = "../rustxterm-rdp" }
+rustxterm-vnc = { path = "../rustxterm-vnc" }
+rustxterm-ftp = { path = "../rustxterm-ftp" }
+rustxterm-serial = { path = "../rustxterm-serial" }
+rustxterm-filemanager = { path = "../rustxterm-filemanager" }
+rustxterm-credentials = { path = "../rustxterm-credentials" }
+rustxterm-network-tools = { path = "../rustxterm-network-tools" }
+rustxterm-tunnel = { path = "../rustxterm-tunnel" }
+rustxterm-plugin = { path = "../rustxterm-plugin" }
+tauri = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+[build-dependencies]
+tauri-build = { workspace = true }

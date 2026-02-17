@@ -1,0 +1,13 @@
+[package]
+name = "rustxterm-ftp"
+description = "FTP and FTPS protocol handler for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+suppaftp = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

@@ -1,0 +1,182 @@
+# Release Build - Triggered when a new release is published
+# 發布建構 - 當新的 Release 發布時觸發
+#
+# Usage / 使用方式:
+#   1. Go to GitHub → Releases → "Draft a new release"
+#      前往 GitHub → Releases → "Draft a new release"
+#   2. Create a new tag (e.g., v0.1.0)
+#      建立新標籤（例如 v0.1.0）
+#   3. Publish the release → this workflow starts automatically
+#      發布 Release → 此工作流程自動啟動
+#   4. Built binaries will be attached to the release
+#      編譯完成的二進位檔案將自動附加到 Release
+
+name: Release Build
+
+on:
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  # Build for each platform / 針對各平台建構
+  build:
+    name: Build - ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: rustxterm-windows-x86_64
+            binary_ext: .exe
+
+          # Linux x86_64 (compatible with Rocky Linux 8/9)
+          # Linux x86_64（相容 Rocky Linux 8/9）
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: rustxterm-linux-x86_64
+            binary_ext: ""
+
+    steps:
+      # Checkout source code / 取出原始碼
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Rust toolchain / 安裝 Rust 工具鏈
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # Cache dependencies / 快取相依套件
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # Install Linux dependencies / 安裝 Linux 相依套件
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            pkg-config
+
+      # Install Node.js for Tauri frontend / 安裝 Node.js（Tauri 前端需要）
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Build frontend (when frontend/ exists) / 建構前端（當 frontend/ 存在時）
+      - name: Build frontend
+        run: |
+          if [ -d "frontend" ]; then
+            cd frontend
+            npm ci
+            npm run build
+          else
+            echo "No frontend directory yet, skipping frontend build"
+            echo "前端目錄尚未建立，跳過前端建構"
+          fi
+        shell: bash
+
+      # Build Rust workspace / 建構 Rust 工作區
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # Package artifacts (Linux) / 打包產出物（Linux）
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p dist
+          # Copy binary / 複製執行檔
+          cp target/${{ matrix.target }}/release/rustxterm-app dist/rustxterm 2>/dev/null || echo "Binary not found, workspace may need app crate build"
+          # Copy docs / 複製文件
+          cp README.md dist/
+          cp -r docs dist/
+          # Create tarball / 建立壓縮檔
+          cd dist
+          tar czf ../${{ matrix.artifact_name }}-${{ github.ref_name }}.tar.gz *
+
+      # Package artifacts (Windows) / 打包產出物（Windows）
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          # Copy binary / 複製執行檔
+          $bin = "target/${{ matrix.target }}/release/rustxterm-app.exe"
+          if (Test-Path $bin) {
+            Copy-Item $bin dist/rustxterm.exe
+          } else {
+            Write-Host "Binary not found, workspace may need app crate build"
+          }
+          # Copy docs / 複製文件
+          Copy-Item README.md dist/
+          Copy-Item -Recurse docs dist/
+          # Create zip / 建立壓縮檔
+          Compress-Archive -Path dist/* -DestinationPath "${{ matrix.artifact_name }}-${{ github.ref_name }}.zip"
+
+      # Upload to release (Linux) / 上傳到 Release（Linux）
+      - name: Upload Release Asset (Linux)
+        if: runner.os == 'Linux'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_name }}-${{ github.ref_name }}.tar.gz
+
+      # Upload to release (Windows) / 上傳到 Release（Windows）
+      - name: Upload Release Asset (Windows)
+        if: runner.os == 'Windows'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_name }}-${{ github.ref_name }}.zip
+
+  # Create checksums after all builds complete / 所有建構完成後建立校驗碼
+  checksums:
+    name: Generate Checksums
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # Download release assets and generate checksums
+      # 下載發布資產並產生校驗碼
+      - name: Generate SHA256 checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Download all release assets / 下載所有發布資產
+          gh release download ${{ github.ref_name }} \
+            --repo ${{ github.repository }} \
+            --dir release-files \
+            --pattern '*' || true
+
+          if [ -d "release-files" ] && [ "$(ls -A release-files)" ]; then
+            cd release-files
+            sha256sum * > SHA256SUMS.txt
+            cat SHA256SUMS.txt
+            # Upload checksums / 上傳校驗碼
+            gh release upload ${{ github.ref_name }} SHA256SUMS.txt \
+              --repo ${{ github.repository }} \
+              --clobber
+          else
+            echo "No release files found to checksum"
+          fi

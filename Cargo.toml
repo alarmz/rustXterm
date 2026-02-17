@@ -1,0 +1,88 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rustxterm-core",
+    "crates/rustxterm-terminal",
+    "crates/rustxterm-session",
+    "crates/rustxterm-ssh",
+    "crates/rustxterm-telnet",
+    "crates/rustxterm-rdp",
+    "crates/rustxterm-vnc",
+    "crates/rustxterm-ftp",
+    "crates/rustxterm-serial",
+    "crates/rustxterm-filemanager",
+    "crates/rustxterm-credentials",
+    "crates/rustxterm-network-tools",
+    "crates/rustxterm-tunnel",
+    "crates/rustxterm-plugin",
+    "crates/rustxterm-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["RustXterm Contributors"]
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Error handling
+anyhow = "1"
+thiserror = "2"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Async trait
+async-trait = "0.1"
+
+# SSH
+russh = "0.48"
+russh-keys = "0.48"
+russh-sftp = "2"
+
+# Terminal / PTY
+portable-pty = "0.8"
+vte = "0.13"
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Cryptography
+aes-gcm = "0.10"
+pbkdf2 = "0.12"
+sha2 = "0.10"
+rand = "0.8"
+
+# OS keyring
+keyring = "3"
+
+# Serial port
+serialport = "4"
+
+# FTP
+suppaftp = { version = "6", features = ["async-rustls"] }
+
+# Network
+trust-dns-resolver = "0.23"
+
+# Tauri
+tauri = "2"
+tauri-build = "2"
+
+# UUID
+uuid = { version = "1", features = ["v4"] }
+
+# DateTime
+chrono = { version = "0.4", features = ["serde"] }
+
+# Collections
+indexmap = { version = "2", features = ["serde"] }

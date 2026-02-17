@@ -1,0 +1,12 @@
+[package]
+name = "rustxterm-vnc"
+description = "VNC protocol handler for RustXterm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustxterm-core = { path = "../rustxterm-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
