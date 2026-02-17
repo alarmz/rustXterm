@@ -1,0 +1,1 @@
+//! VNC input event handling.

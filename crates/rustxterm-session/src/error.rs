@@ -1,0 +1,1 @@
+//! Session error types.

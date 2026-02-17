@@ -1,0 +1,1 @@
+//! Telnet error types.

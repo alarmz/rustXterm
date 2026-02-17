@@ -1,0 +1,1 @@
+//! SSH error types.

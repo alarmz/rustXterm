@@ -1,0 +1,1 @@
+//! RDP error types.
