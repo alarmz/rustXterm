@@ -74,6 +74,7 @@ jobs:
             librsvg2-dev \
             patchelf \
             libssl-dev \
+            libudev-dev \
             pkg-config
 
       # Install Node.js for Tauri frontend / 安裝 Node.js（Tauri 前端需要）
