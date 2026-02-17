@@ -38,6 +38,15 @@ jobs:
         with:
           components: clippy
 
+      # Install Node.js for frontend build / 安裝 Node.js 建構前端
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Build frontend (required by tauri::generate_context!) / 建構前端
+      - name: Build frontend
+        run: cd frontend && npm ci && npm run build
+
       # Linux dependencies / Linux 相依套件
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -61,6 +70,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+
+      # Install Node.js for frontend build / 安裝 Node.js 建構前端
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Build frontend (required by tauri::generate_context!) / 建構前端
+      - name: Build frontend
+        run: cd frontend && npm ci && npm run build
 
       # Linux dependencies / Linux 相依套件
       - name: Install Linux dependencies

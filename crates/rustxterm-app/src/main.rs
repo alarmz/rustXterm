@@ -1,20 +1,29 @@
-//! # rustxterm-app
-//!
-//! Tauri application entry point for RustXterm.
-//!
-//! This binary crate initializes the Tauri application, sets up logging,
-//! and wires together all RustXterm subsystems.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+mod commands;
+mod menu;
+mod pty_manager;
+
+use pty_manager::PtyManager;
+use std::sync::Mutex;
 
 fn main() {
-    // Initialize tracing/logging
     tracing_subscriber::fmt::init();
-
     tracing::info!("Starting RustXterm application");
 
-    // TODO: Initialize Tauri application
-    // tauri::Builder::default()
-    //     .run(tauri::generate_context!())
-    //     .expect("error while running tauri application");
-
-    println!("RustXterm - placeholder entry point");
+    tauri::Builder::default()
+        .manage(Mutex::new(PtyManager::new()))
+        .setup(|app| {
+            menu::setup_menu(app)?;
+            Ok(())
+        })
+        .on_menu_event(menu::handle_menu_event)
+        .invoke_handler(tauri::generate_handler![
+            commands::spawn_shell,
+            commands::write_to_pty,
+            commands::resize_pty,
+            commands::close_pty,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running RustXterm");
 }
