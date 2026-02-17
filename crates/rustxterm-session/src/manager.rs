@@ -41,3 +41,85 @@ impl SessionManager {
         self.db.update_last_connected(id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rustxterm_core::protocol::ProtocolType;
+    use rustxterm_core::session::{SessionConfig, SshConfig};
+    use chrono::Utc;
+    use tempfile::TempDir;
+
+    fn test_manager() -> (SessionManager, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let manager = SessionManager::open(dir.path()).unwrap();
+        (manager, dir)
+    }
+
+    fn sample_session(name: &str) -> SessionInfo {
+        SessionInfo {
+            id: 0,
+            name: name.to_string(),
+            group_id: None,
+            protocol: ProtocolType::Ssh,
+            host: Some("example.com".to_string()),
+            port: Some(22),
+            username: Some("user".to_string()),
+            credential_id: None,
+            config: SessionConfig::Ssh(SshConfig::default()),
+            color_tag: None,
+            notes: None,
+            is_favorite: false,
+            auto_connect: false,
+            sort_order: 0,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            last_connected: None,
+        }
+    }
+
+    #[test]
+    fn test_save_and_load_session() {
+        let (mgr, _dir) = test_manager();
+        let info = sample_session("My Server");
+        let id = mgr.save_session(&info).unwrap();
+        assert!(id > 0);
+
+        let loaded = mgr.load_session(id).unwrap();
+        assert_eq!(loaded.name, "My Server");
+        assert_eq!(loaded.protocol, ProtocolType::Ssh);
+    }
+
+    #[test]
+    fn test_list_all_sessions() {
+        let (mgr, _dir) = test_manager();
+        mgr.save_session(&sample_session("Server A")).unwrap();
+        mgr.save_session(&sample_session("Server B")).unwrap();
+        let list = mgr.list_all().unwrap();
+        assert_eq!(list.len(), 2);
+    }
+
+    #[test]
+    fn test_delete_session() {
+        let (mgr, _dir) = test_manager();
+        let id = mgr.save_session(&sample_session("Temporary")).unwrap();
+        assert!(mgr.delete_session(id).unwrap());
+        assert!(matches!(
+            mgr.load_session(id),
+            Err(SessionError::NotFound(_))
+        ));
+    }
+
+    #[test]
+    fn test_update_last_connected() {
+        let (mgr, _dir) = test_manager();
+        let id = mgr.save_session(&sample_session("Server")).unwrap();
+
+        let before = mgr.load_session(id).unwrap();
+        assert!(before.last_connected.is_none());
+
+        mgr.update_last_connected(id).unwrap();
+        let after = mgr.load_session(id).unwrap();
+        assert!(after.last_connected.is_some());
+    }
+}

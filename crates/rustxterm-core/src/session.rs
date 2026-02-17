@@ -124,3 +124,80 @@ impl Default for SshConfig {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ssh_config_default_values() {
+        let config = SshConfig::default();
+        assert_eq!(config.keepalive_interval, 60);
+        assert_eq!(config.terminal_type, "xterm-256color");
+        assert_eq!(config.encoding, "UTF-8");
+        assert!(!config.x11_forwarding);
+        assert!(!config.agent_forwarding);
+        assert!(!config.compression);
+        assert!(config.private_key_path.is_none());
+        assert!(config.startup_commands.is_empty());
+        assert!(config.environment.is_empty());
+    }
+
+    #[test]
+    fn test_session_config_ssh_serde_roundtrip() {
+        let config = SessionConfig::Ssh(SshConfig::default());
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: SessionConfig = serde_json::from_str(&json).unwrap();
+        // Verify it round-trips to the same JSON
+        let json2 = serde_json::to_string(&deserialized).unwrap();
+        assert_eq!(json, json2);
+    }
+
+    #[test]
+    fn test_session_config_shell_serde_roundtrip() {
+        let config = SessionConfig::Shell(ShellConfig {
+            shell_path: Some("/bin/zsh".to_string()),
+            working_directory: Some("/home/user".to_string()),
+            environment: std::collections::HashMap::from([
+                ("TERM".to_string(), "xterm-256color".to_string()),
+            ]),
+        });
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: SessionConfig = serde_json::from_str(&json).unwrap();
+        let json2 = serde_json::to_string(&deserialized).unwrap();
+        assert_eq!(json, json2);
+    }
+
+    #[test]
+    fn test_session_info_serde_roundtrip() {
+        let info = SessionInfo {
+            id: 42,
+            name: "My SSH Server".to_string(),
+            group_id: Some(1),
+            protocol: ProtocolType::Ssh,
+            host: Some("example.com".to_string()),
+            port: Some(22),
+            username: Some("admin".to_string()),
+            credential_id: Some(5),
+            config: SessionConfig::Ssh(SshConfig::default()),
+            color_tag: Some("#ff0000".to_string()),
+            notes: Some("Production server".to_string()),
+            is_favorite: true,
+            auto_connect: false,
+            sort_order: 3,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            last_connected: Some(Utc::now()),
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        let deserialized: SessionInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(info.id, deserialized.id);
+        assert_eq!(info.name, deserialized.name);
+        assert_eq!(info.group_id, deserialized.group_id);
+        assert_eq!(info.protocol, deserialized.protocol);
+        assert_eq!(info.host, deserialized.host);
+        assert_eq!(info.port, deserialized.port);
+        assert_eq!(info.is_favorite, deserialized.is_favorite);
+        assert_eq!(info.sort_order, deserialized.sort_order);
+    }
+}

@@ -54,9 +54,10 @@ impl SshClient {
         cols: u16,
         rows: u16,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Vec<u8>>), SshError> {
-        tokio::time::timeout(CONNECT_TIMEOUT, Self::connect_inner(
-            host, port, username, password, cols, rows,
-        ))
+        tokio::time::timeout(
+            CONNECT_TIMEOUT,
+            Self::connect_inner(host, port, username, password, cols, rows),
+        )
         .await
         .map_err(|_| SshError::Timeout)?
     }
@@ -126,15 +127,7 @@ impl SshClient {
             .map_err(|e| SshError::ChannelError(e.to_string()))?;
 
         channel
-            .request_pty(
-                false,
-                "xterm-256color",
-                cols as u32,
-                rows as u32,
-                0,
-                0,
-                &[],
-            )
+            .request_pty(false, "xterm-256color", cols as u32, rows as u32, 0, 0, &[])
             .await
             .map_err(|e| SshError::ChannelError(e.to_string()))?;
 

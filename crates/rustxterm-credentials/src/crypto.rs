@@ -86,4 +86,42 @@ mod tests {
         let (ciphertext, nonce) = encrypt(b"secret", &key1).unwrap();
         assert!(decrypt(&ciphertext, &nonce, &key2).is_err());
     }
+
+    #[test]
+    fn test_derive_key_deterministic() {
+        let password = b"my-password";
+        let salt = b"fixed-salt-for-testing-1234567890";
+        let key1 = derive_key(password, salt);
+        let key2 = derive_key(password, salt);
+        assert_eq!(key1, key2);
+    }
+
+    #[test]
+    fn test_derive_key_different_salts() {
+        let password = b"my-password";
+        let salt1 = b"salt-aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        let salt2 = b"salt-bbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        let key1 = derive_key(password, salt1);
+        let key2 = derive_key(password, salt2);
+        assert_ne!(key1, key2);
+    }
+
+    #[test]
+    fn test_encrypt_produces_different_ciphertext() {
+        let key = derive_key(b"password", b"salt-for-testing-deterministic!!");
+        let plaintext = b"same-plaintext";
+        let (ct1, nonce1) = encrypt(plaintext, &key).unwrap();
+        let (ct2, nonce2) = encrypt(plaintext, &key).unwrap();
+        // Different random nonces should produce different ciphertext
+        assert_ne!(nonce1, nonce2);
+        assert_ne!(ct1, ct2);
+    }
+
+    #[test]
+    fn test_empty_plaintext_roundtrip() {
+        let key = derive_key(b"password", b"salt-for-testing-deterministic!!");
+        let (ciphertext, nonce) = encrypt(b"", &key).unwrap();
+        let decrypted = decrypt(&ciphertext, &nonce, &key).unwrap();
+        assert!(decrypted.is_empty());
+    }
 }

@@ -232,3 +232,182 @@ fn parse_protocol(s: &str) -> rusqlite::Result<ProtocolType> {
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rustxterm_core::session::{SessionConfig, ShellConfig, SshConfig};
+    use tempfile::TempDir;
+
+    fn test_db() -> (SessionDb, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db = SessionDb::open(&dir.path().join("test.db")).unwrap();
+        (db, dir)
+    }
+
+    fn sample_session(name: &str, sort_order: i32) -> SessionInfo {
+        SessionInfo {
+            id: 0,
+            name: name.to_string(),
+            group_id: None,
+            protocol: ProtocolType::Ssh,
+            host: Some("example.com".to_string()),
+            port: Some(22),
+            username: Some("admin".to_string()),
+            credential_id: None,
+            config: SessionConfig::Ssh(SshConfig::default()),
+            color_tag: None,
+            notes: None,
+            is_favorite: false,
+            auto_connect: false,
+            sort_order,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            last_connected: None,
+        }
+    }
+
+    // ── parse_protocol tests ─────────────────────────────────────
+
+    #[test]
+    fn test_parse_protocol_all_variants() {
+        let cases = [
+            ("Ssh", ProtocolType::Ssh),
+            ("Sftp", ProtocolType::Sftp),
+            ("Ftp", ProtocolType::Ftp),
+            ("Ftps", ProtocolType::Ftps),
+            ("Telnet", ProtocolType::Telnet),
+            ("Rdp", ProtocolType::Rdp),
+            ("Vnc", ProtocolType::Vnc),
+            ("Serial", ProtocolType::Serial),
+            ("Shell", ProtocolType::Shell),
+            ("Rlogin", ProtocolType::Rlogin),
+            ("Mosh", ProtocolType::Mosh),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(parse_protocol(input).unwrap(), expected, "failed for {input}");
+        }
+    }
+
+    #[test]
+    fn test_parse_protocol_unknown() {
+        assert!(parse_protocol("Unknown").is_err());
+        assert!(parse_protocol("").is_err());
+    }
+
+    // ── parse_datetime tests ─────────────────────────────────────
+
+    #[test]
+    fn test_parse_datetime_valid() {
+        let dt = parse_datetime("2024-01-15 10:30:00").unwrap();
+        assert_eq!(dt.format("%Y-%m-%d %H:%M:%S").to_string(), "2024-01-15 10:30:00");
+    }
+
+    #[test]
+    fn test_parse_datetime_invalid() {
+        assert!(parse_datetime("not-a-date").is_err());
+        assert!(parse_datetime("").is_err());
+    }
+
+    // ── SessionDb CRUD tests ─────────────────────────────────────
+
+    #[test]
+    fn test_insert_and_get() {
+        let (db, _dir) = test_db();
+        let info = sample_session("Test SSH", 0);
+        let id = db.insert(&info).unwrap();
+        assert!(id > 0);
+
+        let loaded = db.get(id).unwrap();
+        assert_eq!(loaded.id, id);
+        assert_eq!(loaded.name, "Test SSH");
+        assert_eq!(loaded.protocol, ProtocolType::Ssh);
+        assert_eq!(loaded.host, Some("example.com".to_string()));
+        assert_eq!(loaded.port, Some(22));
+        assert_eq!(loaded.username, Some("admin".to_string()));
+        assert!(!loaded.is_favorite);
+        assert!(loaded.last_connected.is_none());
+    }
+
+    #[test]
+    fn test_update_session() {
+        let (db, _dir) = test_db();
+        let info = sample_session("Original", 0);
+        let id = db.insert(&info).unwrap();
+
+        let mut updated = db.get(id).unwrap();
+        updated.name = "Renamed".to_string();
+        updated.is_favorite = true;
+        db.update(&updated).unwrap();
+
+        let loaded = db.get(id).unwrap();
+        assert_eq!(loaded.name, "Renamed");
+        assert!(loaded.is_favorite);
+    }
+
+    #[test]
+    fn test_list_all_ordering() {
+        let (db, _dir) = test_db();
+        // Insert with different sort_orders (out of order)
+        db.insert(&sample_session("Charlie", 2)).unwrap();
+        db.insert(&sample_session("Alpha", 0)).unwrap();
+        db.insert(&sample_session("Bravo", 1)).unwrap();
+
+        let list = db.list_all().unwrap();
+        assert_eq!(list.len(), 3);
+        // ORDER BY sort_order, name
+        assert_eq!(list[0].name, "Alpha");
+        assert_eq!(list[1].name, "Bravo");
+        assert_eq!(list[2].name, "Charlie");
+    }
+
+    #[test]
+    fn test_delete_existing() {
+        let (db, _dir) = test_db();
+        let id = db.insert(&sample_session("ToDelete", 0)).unwrap();
+        assert!(db.delete(id).unwrap());
+        assert!(matches!(db.get(id), Err(SessionError::NotFound(_))));
+    }
+
+    #[test]
+    fn test_delete_nonexistent() {
+        let (db, _dir) = test_db();
+        assert!(!db.delete(999).unwrap());
+    }
+
+    #[test]
+    fn test_get_nonexistent() {
+        let (db, _dir) = test_db();
+        assert!(matches!(db.get(999), Err(SessionError::NotFound(999))));
+    }
+
+    #[test]
+    fn test_update_last_connected() {
+        let (db, _dir) = test_db();
+        let id = db.insert(&sample_session("Server", 0)).unwrap();
+
+        // Initially last_connected is None
+        let loaded = db.get(id).unwrap();
+        assert!(loaded.last_connected.is_none());
+
+        // After updating, it should be Some
+        db.update_last_connected(id).unwrap();
+        let loaded = db.get(id).unwrap();
+        assert!(loaded.last_connected.is_some());
+    }
+
+    #[test]
+    fn test_shell_config_roundtrip() {
+        let (db, _dir) = test_db();
+        let mut info = sample_session("Local Shell", 0);
+        info.protocol = ProtocolType::Shell;
+        info.config = SessionConfig::Shell(ShellConfig::default());
+        info.host = None;
+        info.port = None;
+
+        let id = db.insert(&info).unwrap();
+        let loaded = db.get(id).unwrap();
+        assert_eq!(loaded.protocol, ProtocolType::Shell);
+        assert!(loaded.host.is_none());
+    }
+}

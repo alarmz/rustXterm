@@ -31,8 +31,8 @@ impl AppSessionManager {
     pub fn new() -> Result<Self, String> {
         let data_dir = Self::data_dir();
 
-        let session_db =
-            SessionManager::open(&data_dir).map_err(|e| format!("Failed to open session DB: {e}"))?;
+        let session_db = SessionManager::open(&data_dir)
+            .map_err(|e| format!("Failed to open session DB: {e}"))?;
 
         let credential_store = CredentialStore::open(&data_dir)
             .map_err(|e| format!("Failed to open credential store: {e}"))?;
@@ -99,16 +99,14 @@ impl AppSessionManager {
     /// Resize any session.
     pub fn resize(&mut self, session_id: &str, cols: u16, rows: u16) -> Result<(), String> {
         match self.active.get_mut(session_id) {
-            Some(ActiveSession::Local { master, .. }) => {
-                master
-                    .resize(PtySize {
-                        rows,
-                        cols,
-                        pixel_width: 0,
-                        pixel_height: 0,
-                    })
-                    .map_err(|e| e.to_string())
-            }
+            Some(ActiveSession::Local { master, .. }) => master
+                .resize(PtySize {
+                    rows,
+                    cols,
+                    pixel_width: 0,
+                    pixel_height: 0,
+                })
+                .map_err(|e| e.to_string()),
             Some(ActiveSession::Ssh { client }) => {
                 client.resize(cols, rows).map_err(|e| e.to_string())
             }

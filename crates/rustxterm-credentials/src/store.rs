@@ -6,8 +6,8 @@ use crate::error::CredentialError;
 use crate::keyring_backend;
 
 pub struct CredentialStore {
-    db: CredentialDb,
-    master_key: Vec<u8>,
+    pub(crate) db: CredentialDb,
+    pub(crate) master_key: Vec<u8>,
 }
 
 impl CredentialStore {
@@ -75,5 +75,57 @@ impl CredentialStore {
     /// Delete a credential by ID.
     pub fn delete(&self, id: i64) -> Result<bool, CredentialError> {
         self.db.delete(id)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::database::CredentialDb;
+    use tempfile::TempDir;
+
+    fn test_store() -> (CredentialStore, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db = CredentialDb::open(&dir.path().join("test.db")).unwrap();
+        let master_key =
+            crypto::derive_key(b"test-master-key", b"test-salt-value-1234567890123456").to_vec();
+        (CredentialStore { db, master_key }, dir)
+    }
+
+    #[test]
+    fn test_save_and_decrypt_password() {
+        let (store, _dir) = test_store();
+        let id = store.save("my-server", "admin", "s3cret!").unwrap();
+        let decrypted = store.decrypt_password(id).unwrap();
+        assert_eq!(decrypted, "s3cret!");
+    }
+
+    #[test]
+    fn test_list_after_save() {
+        let (store, _dir) = test_store();
+        store.save("server-a", "user1", "pass1").unwrap();
+        store.save("server-b", "user2", "pass2").unwrap();
+        let list = store.list().unwrap();
+        assert_eq!(list.len(), 2);
+    }
+
+    #[test]
+    fn test_delete_credential() {
+        let (store, _dir) = test_store();
+        let id = store.save("temp-cred", "user", "password").unwrap();
+        assert!(store.delete(id).unwrap());
+        assert!(matches!(
+            store.decrypt_password(id),
+            Err(CredentialError::NotFound(_))
+        ));
+    }
+
+    #[test]
+    fn test_decrypt_nonexistent() {
+        let (store, _dir) = test_store();
+        assert!(matches!(
+            store.decrypt_password(999),
+            Err(CredentialError::NotFound(999))
+        ));
     }
 }

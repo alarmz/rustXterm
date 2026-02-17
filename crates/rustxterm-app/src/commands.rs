@@ -196,10 +196,7 @@ pub fn list_credentials(
     state: State<'_, Mutex<AppSessionManager>>,
 ) -> Result<Vec<CredentialRecord>, String> {
     let manager = state.lock().map_err(|e| e.to_string())?;
-    manager
-        .credential_store
-        .list()
-        .map_err(|e| e.to_string())
+    manager.credential_store.list().map_err(|e| e.to_string())
 }
 
 #[tauri::command]

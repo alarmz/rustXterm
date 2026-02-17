@@ -131,3 +131,68 @@ impl CredentialDb {
         Ok(affected > 0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn test_db() -> (CredentialDb, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db = CredentialDb::open(&dir.path().join("test.db")).unwrap();
+        (db, dir)
+    }
+
+    #[test]
+    fn test_insert_and_get() {
+        let (db, _dir) = test_db();
+        let id = db
+            .insert("server-pw", "admin", b"encrypted", b"nonce123456!", b"salt", None, "password")
+            .unwrap();
+        assert!(id > 0);
+
+        let row = db.get(id).unwrap();
+        assert_eq!(row.id, id);
+        assert_eq!(row.name, "server-pw");
+        assert_eq!(row.username, "admin");
+        assert_eq!(row.encrypted_password, b"encrypted");
+        assert_eq!(row.nonce, b"nonce123456!");
+        assert_eq!(row.salt, b"salt");
+        assert_eq!(row.credential_type, "password");
+        assert!(row.key_path.is_none());
+    }
+
+    #[test]
+    fn test_list_returns_all_ordered_by_name() {
+        let (db, _dir) = test_db();
+        db.insert("charlie", "u1", b"e1", b"n1", b"s1", None, "password").unwrap();
+        db.insert("alpha", "u2", b"e2", b"n2", b"s2", None, "password").unwrap();
+        db.insert("bravo", "u3", b"e3", b"n3", b"s3", None, "password").unwrap();
+
+        let records = db.list().unwrap();
+        assert_eq!(records.len(), 3);
+        assert_eq!(records[0].name, "alpha");
+        assert_eq!(records[1].name, "bravo");
+        assert_eq!(records[2].name, "charlie");
+    }
+
+    #[test]
+    fn test_delete_existing() {
+        let (db, _dir) = test_db();
+        let id = db.insert("test", "user", b"e", b"n", b"s", None, "password").unwrap();
+        assert!(db.delete(id).unwrap());
+        assert!(matches!(db.get(id), Err(CredentialError::NotFound(_))));
+    }
+
+    #[test]
+    fn test_delete_nonexistent() {
+        let (db, _dir) = test_db();
+        assert!(!db.delete(999).unwrap());
+    }
+
+    #[test]
+    fn test_get_nonexistent() {
+        let (db, _dir) = test_db();
+        assert!(matches!(db.get(999), Err(CredentialError::NotFound(999))));
+    }
+}
