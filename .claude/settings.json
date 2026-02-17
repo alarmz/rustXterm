@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": ["*"],
+    "deny": [],
+    "systemPrompt": "請一律使用繁體中文回覆。"
+
+  }
+}
