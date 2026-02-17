@@ -1,14 +1,3 @@
-//! # rustxterm-credentials
-//!
-//! Credential and password management for RustXterm.
-//!
-//! This crate provides:
-//! - Encrypted credential storage using AES-GCM
-//! - Master password derivation via PBKDF2
-//! - OS keyring integration for secure key storage
-//! - SQLite-backed credential database
-//! - SSH key management and passphrase handling
-
 pub mod crypto;
 pub mod database;
 pub mod keyring_backend;
@@ -16,4 +5,6 @@ pub mod store;
 
 mod error;
 
+pub use database::CredentialRecord;
 pub use error::CredentialError;
+pub use store::CredentialStore;

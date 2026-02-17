@@ -21,6 +21,8 @@ body,
   height: 100%;
 }
 
+/* ── Tab bar ────────────────────────────────────────────────── */
+
 .tab-bar {
   display: flex;
   background: #252526;
@@ -41,7 +43,7 @@ body,
   font-size: 13px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-right: 2px;
   white-space: nowrap;
 }
@@ -50,10 +52,30 @@ body,
   background: #363636;
 }
 
+.tab:focus-visible {
+  outline: 2px solid #0e639c;
+  outline-offset: -2px;
+}
+
 .tab.active {
   background: #1e1e1e;
   color: #fff;
   border-bottom: 1px solid #1e1e1e;
+}
+
+.tab-type-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #3c3c3c;
+  color: #aaa;
+  letter-spacing: 0.5px;
+}
+
+.tab.active .tab-type-badge {
+  background: #0e639c;
+  color: #fff;
 }
 
 .tab-close {
@@ -92,6 +114,14 @@ body,
   color: #fff;
 }
 
+/* ── Main content area ──────────────────────────────────────── */
+
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
 .terminal-container {
   flex: 1;
   position: relative;
@@ -122,4 +152,217 @@ body,
   font-size: 28px;
   color: #888;
   font-weight: 300;
+}
+
+/* ── Session sidebar ────────────────────────────────────────── */
+
+.sidebar {
+  width: 250px;
+  min-width: 250px;
+  background: #252526;
+  border-right: 1px solid #3c3c3c;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.sidebar-add-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.sidebar-add-btn:hover {
+  color: #fff;
+}
+
+.sidebar-section {
+  padding: 4px 0;
+}
+
+.sidebar-section-title {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.sidebar-item:hover {
+  background: #2a2d2e;
+}
+
+.sidebar-item-icon {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #3c3c3c;
+  color: #aaa;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-item-delete {
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+  opacity: 0;
+}
+
+.sidebar-item:hover .sidebar-item-delete {
+  opacity: 1;
+}
+
+.sidebar-item-delete:hover {
+  color: #f44;
+}
+
+.sidebar-empty {
+  padding: 12px;
+  color: #555;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ── Connect dialog ─────────────────────────────────────────── */
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.connect-dialog {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90vw;
+}
+
+.connect-dialog h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #eee;
+}
+
+.connect-error {
+  background: #4a1c1c;
+  color: #ff8a8a;
+  border: 1px solid #6b2c2c;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 8px 10px;
+  background: #1e1e1e;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #d4d4d4;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-row input:focus {
+  border-color: #0e639c;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-cancel,
+.btn-connect {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #3c3c3c;
+  color: #ccc;
+}
+
+.btn-cancel:hover {
+  background: #4c4c4c;
+}
+
+.btn-connect {
+  background: #0e639c;
+  color: #fff;
+}
+
+.btn-connect:hover {
+  background: #1177bb;
+}
+
+.btn-connect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -86,3 +86,6 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Collections
 indexmap = { version = "2", features = ["serde"] }
+
+# Directories
+dirs = "5"

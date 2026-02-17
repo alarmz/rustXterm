@@ -10,28 +10,18 @@ path = "src/main.rs"
 
 [dependencies]
 rustxterm-core = { path = "../rustxterm-core" }
-rustxterm-terminal = { path = "../rustxterm-terminal" }
 rustxterm-session = { path = "../rustxterm-session" }
 rustxterm-ssh = { path = "../rustxterm-ssh" }
-rustxterm-telnet = { path = "../rustxterm-telnet" }
-rustxterm-rdp = { path = "../rustxterm-rdp" }
-rustxterm-vnc = { path = "../rustxterm-vnc" }
-rustxterm-ftp = { path = "../rustxterm-ftp" }
-rustxterm-serial = { path = "../rustxterm-serial" }
-rustxterm-filemanager = { path = "../rustxterm-filemanager" }
 rustxterm-credentials = { path = "../rustxterm-credentials" }
-rustxterm-network-tools = { path = "../rustxterm-network-tools" }
-rustxterm-tunnel = { path = "../rustxterm-tunnel" }
-rustxterm-plugin = { path = "../rustxterm-plugin" }
 tauri = { workspace = true, features = ["devtools"] }
 tokio = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
 uuid = { workspace = true }
 portable-pty = { workspace = true }
+dirs = { workspace = true }
 
 [build-dependencies]
 tauri-build = { workspace = true }

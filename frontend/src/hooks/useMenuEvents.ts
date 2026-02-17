@@ -1,24 +1,36 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
 
 export function useMenuEvents(
   onNewTab: () => void,
-  onCloseTab: () => void
+  onCloseTab: () => void,
+  onNewSsh: () => void,
+  onToggleSidebar: () => void
 ) {
+  // Store callbacks in refs so the listener never needs to re-register.
+  const callbacks = useRef({ onNewTab, onCloseTab, onNewSsh, onToggleSidebar });
+  callbacks.current = { onNewTab, onCloseTab, onNewSsh, onToggleSidebar };
+
   useEffect(() => {
-    const unlisten = listen<string>("menu-event", (event) => {
+    const unlistenPromise = listen<string>("menu-event", (event) => {
       switch (event.payload) {
         case "new-tab":
-          onNewTab();
+          callbacks.current.onNewTab();
           break;
         case "close-tab":
-          onCloseTab();
+          callbacks.current.onCloseTab();
+          break;
+        case "new-ssh":
+          callbacks.current.onNewSsh();
+          break;
+        case "toggle-sidebar":
+          callbacks.current.onToggleSidebar();
           break;
       }
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      unlistenPromise.then((fn) => fn());
     };
-  }, [onNewTab, onCloseTab]);
+  }, []);
 }

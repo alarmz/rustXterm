@@ -1,7 +1,5 @@
-interface Tab {
-  id: string;
-  title: string;
-}
+import { memo } from "react";
+import type { Tab } from "../types";
 
 interface TabBarProps {
   tabs: Tab[];
@@ -11,7 +9,7 @@ interface TabBarProps {
   onCloseTab: (id: string) => void;
 }
 
-export default function TabBar({
+export default memo(function TabBar({
   tabs,
   activeTabId,
   onSelectTab,
@@ -19,16 +17,29 @@ export default function TabBar({
   onCloseTab,
 }: TabBarProps) {
   return (
-    <div className="tab-bar">
+    <div className="tab-bar" role="tablist">
       {tabs.map((tab) => (
         <div
           key={tab.id}
           className={`tab ${tab.id === activeTabId ? "active" : ""}`}
+          role="tab"
+          tabIndex={0}
+          aria-selected={tab.id === activeTabId}
           onClick={() => onSelectTab(tab.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelectTab(tab.id);
+            }
+          }}
         >
+          <span className="tab-type-badge">
+            {tab.type === "ssh" ? "SSH" : "SH"}
+          </span>
           <span>{tab.title}</span>
           <button
             className="tab-close"
+            aria-label={`Close ${tab.title}`}
             onClick={(e) => {
               e.stopPropagation();
               onCloseTab(tab.id);
@@ -38,9 +49,9 @@ export default function TabBar({
           </button>
         </div>
       ))}
-      <button className="new-tab-btn" onClick={onNewTab} title="New Tab">
+      <button className="new-tab-btn" onClick={onNewTab} title="New Tab" aria-label="New Tab">
         +
       </button>
     </div>
   );
-}
+});

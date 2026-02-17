@@ -4,6 +4,7 @@ use tauri::{App, AppHandle, Emitter};
 pub fn setup_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let file_menu = SubmenuBuilder::new(app, "File")
         .text("new-tab", "New Tab\tCtrl+T")
+        .text("new-ssh", "New SSH Connection\tCtrl+Shift+S")
         .text("close-tab", "Close Tab\tCtrl+W")
         .separator()
         .text("quit", "Quit\tCtrl+Q")
@@ -17,6 +18,8 @@ pub fn setup_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
+        .text("toggle-sidebar", "Toggle Sidebar\tCtrl+B")
+        .separator()
         .text("zoom-in", "Zoom In\tCtrl++")
         .text("zoom-out", "Zoom Out\tCtrl+-")
         .text("zoom-reset", "Reset Zoom\tCtrl+0")
@@ -35,5 +38,7 @@ pub fn setup_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn handle_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
-    let _ = app.emit("menu-event", event.id().0.clone());
+    if let Err(e) = app.emit("menu-event", event.id().0.clone()) {
+        tracing::warn!("failed to emit menu-event: {e}");
+    }
 }

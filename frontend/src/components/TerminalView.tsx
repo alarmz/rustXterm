@@ -20,6 +20,10 @@ export default function TerminalView({ sessionId, visible }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const visibleRef = useRef(visible);
+
+  // Keep visibleRef in sync so the ResizeObserver callback always sees current value.
+  visibleRef.current = visible;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -48,34 +52,41 @@ export default function TerminalView({ sessionId, visible }: Props) {
     // Send user input to PTY
     const onDataDisposable = term.onData((data) => {
       const encoded = Array.from(new TextEncoder().encode(data));
-      invoke("write_to_pty", { sessionId, data: encoded });
+      invoke("write_to_pty", { sessionId, data: encoded }).catch(() => {});
     });
 
-    // Listen for PTY output
+    // Listen for PTY output — use abort flag to handle cleanup race.
     let unlisten: UnlistenFn | undefined;
+    let disposed = false;
+
     listen<PtyOutputPayload>("pty-output", (event) => {
       if (event.payload.session_id === sessionId) {
         const bytes = new Uint8Array(event.payload.data);
         term.write(bytes);
       }
     }).then((fn) => {
-      unlisten = fn;
+      if (disposed) {
+        fn(); // Already cleaned up, unlisten immediately
+      } else {
+        unlisten = fn;
+      }
     });
 
-    // Handle resize
+    // Handle resize — read visibleRef (not stale `visible` closure)
     const resizeObserver = new ResizeObserver(() => {
-      if (visible) {
+      if (visibleRef.current) {
         fitAddon.fit();
         invoke("resize_pty", {
           sessionId,
           cols: term.cols,
           rows: term.rows,
-        });
+        }).catch(() => {});
       }
     });
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      disposed = true;
       resizeObserver.disconnect();
       onDataDisposable.dispose();
       if (unlisten) unlisten();
@@ -85,20 +96,24 @@ export default function TerminalView({ sessionId, visible }: Props) {
 
   // Re-fit when visibility changes
   useEffect(() => {
+    let rafId: number | undefined;
     if (visible && fitAddonRef.current && termRef.current) {
       // Small delay to ensure container is visible before fitting
-      requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
         fitAddonRef.current?.fit();
         if (termRef.current) {
           invoke("resize_pty", {
             sessionId,
             cols: termRef.current.cols,
             rows: termRef.current.rows,
-          });
+          }).catch(() => {});
           termRef.current.focus();
         }
       });
     }
+    return () => {
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+    };
   }, [visible, sessionId]);
 
   return (

@@ -1,17 +1,10 @@
-//! # rustxterm-session
-//!
-//! Session management and persistence for RustXterm.
-//!
-//! This crate provides:
-//! - Session lifecycle management (create, save, restore, delete)
-//! - SQLite-backed session persistence
-//! - Session grouping and organization
-//! - Connection profile storage and retrieval
-
 pub mod manager;
-pub mod persistence;
-pub mod profile;
+pub(crate) mod persistence;
 
 mod error;
 
 pub use error::SessionError;
+pub use manager::SessionManager;
+
+// Re-export core session types for convenience.
+pub use rustxterm_core::session::{SessionConfig, SessionInfo};
