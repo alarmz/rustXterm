@@ -60,9 +60,7 @@ pub fn write_to_pty(
     data: Vec<u8>,
 ) -> Result<(), String> {
     let mut manager = state.lock().map_err(|e| e.to_string())?;
-    manager
-        .write(&session_id, &data)
-        .map_err(|e| e.to_string())
+    manager.write(&session_id, &data).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -79,10 +77,7 @@ pub fn resize_pty(
 }
 
 #[tauri::command]
-pub fn close_pty(
-    state: State<'_, Mutex<PtyManager>>,
-    session_id: String,
-) -> Result<(), String> {
+pub fn close_pty(state: State<'_, Mutex<PtyManager>>, session_id: String) -> Result<(), String> {
     let mut manager = state.lock().map_err(|e| e.to_string())?;
     manager.close(&session_id);
     Ok(())

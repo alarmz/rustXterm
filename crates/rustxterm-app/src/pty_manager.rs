@@ -40,7 +40,7 @@ impl PtyManager {
         drop(pair.slave);
 
         let reader = pair.master.try_clone_reader()?;
-        let writer = pair.master.try_clone_writer()?;
+        let writer = pair.master.take_writer()?;
 
         self.sessions.insert(
             session_id.to_string(),
