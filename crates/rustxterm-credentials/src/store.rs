@@ -36,12 +36,7 @@ impl CredentialStore {
     }
 
     /// Save a new credential (password-based).
-    pub fn save(
-        &self,
-        name: &str,
-        username: &str,
-        password: &str,
-    ) -> Result<i64, CredentialError> {
+    pub fn save(&self, name: &str, username: &str, password: &str) -> Result<i64, CredentialError> {
         let salt = crypto::generate_salt();
         let key = crypto::derive_key(&self.master_key, &salt);
         let (encrypted, nonce) = crypto::encrypt(password.as_bytes(), &key)?;

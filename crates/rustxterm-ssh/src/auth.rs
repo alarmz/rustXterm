@@ -4,6 +4,7 @@ use std::sync::Arc;
 use crate::error::SshError;
 
 /// Authenticate with password.
+#[allow(dead_code)]
 pub async fn authenticate_password(
     handle: &mut russh::client::Handle<super::client::SshHandler>,
     username: &str,
@@ -16,6 +17,7 @@ pub async fn authenticate_password(
 }
 
 /// Authenticate with a public key file.
+#[allow(dead_code)]
 pub async fn authenticate_publickey(
     handle: &mut russh::client::Handle<super::client::SshHandler>,
     username: &str,

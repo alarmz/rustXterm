@@ -45,9 +45,9 @@ impl SessionManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
     use rustxterm_core::protocol::ProtocolType;
     use rustxterm_core::session::{SessionConfig, SshConfig};
-    use chrono::Utc;
     use tempfile::TempDir;
 
     fn test_manager() -> (SessionManager, TempDir) {

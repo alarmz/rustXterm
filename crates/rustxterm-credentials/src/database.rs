@@ -17,6 +17,7 @@ pub struct CredentialRecord {
 }
 
 /// Internal row with encrypted data.
+#[allow(dead_code)]
 pub(crate) struct CredentialRow {
     pub id: i64,
     pub name: String,
@@ -61,6 +62,7 @@ impl CredentialDb {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn insert(
         &self,
         name: &str,
@@ -79,7 +81,7 @@ impl CredentialDb {
         Ok(self.conn.last_insert_rowid())
     }
 
-    pub fn get(&self, id: i64) -> Result<CredentialRow, CredentialError> {
+    pub(crate) fn get(&self, id: i64) -> Result<CredentialRow, CredentialError> {
         self.conn
             .query_row(
                 "SELECT id, name, username, encrypted_password, nonce, salt, credential_type, key_path
@@ -190,7 +192,9 @@ mod tests {
     #[test]
     fn test_delete_existing() {
         let (db, _dir) = test_db();
-        let id = db.insert("test", "user", b"e", b"n", b"s", None, "password").unwrap();
+        let id = db
+            .insert("test", "user", b"e", b"n", b"s", None, "password")
+            .unwrap();
         assert!(db.delete(id).unwrap());
         assert!(matches!(db.get(id), Err(CredentialError::NotFound(_))));
     }
