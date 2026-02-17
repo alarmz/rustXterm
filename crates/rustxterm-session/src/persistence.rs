@@ -138,7 +138,7 @@ impl SessionDb {
                  created_at, updated_at, last_connected
                  FROM sessions WHERE id = ?1",
                 params![id],
-                |row| Self::row_to_session_info(row),
+                Self::row_to_session_info,
             )
             .map_err(|e| match e {
                 rusqlite::Error::QueryReturnedNoRows => SessionError::NotFound(id),
@@ -154,7 +154,7 @@ impl SessionDb {
              FROM sessions ORDER BY sort_order, name",
         )?;
 
-        let rows = stmt.query_map([], |row| Self::row_to_session_info(row))?;
+        let rows = stmt.query_map([], Self::row_to_session_info)?;
         rows.collect::<Result<Vec<_>, _>>().map_err(Into::into)
     }
 
@@ -183,11 +183,7 @@ impl SessionDb {
 
         let protocol = parse_protocol(&protocol_str)?;
         let config: SessionConfig = serde_json::from_str(&config_json).map_err(|e| {
-            rusqlite::Error::FromSqlConversionFailure(
-                0,
-                rusqlite::types::Type::Text,
-                Box::new(e),
-            )
+            rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e))
         })?;
 
         Ok(SessionInfo {
@@ -285,7 +281,11 @@ mod tests {
             ("Mosh", ProtocolType::Mosh),
         ];
         for (input, expected) in cases {
-            assert_eq!(parse_protocol(input).unwrap(), expected, "failed for {input}");
+            assert_eq!(
+                parse_protocol(input).unwrap(),
+                expected,
+                "failed for {input}"
+            );
         }
     }
 
@@ -300,7 +300,10 @@ mod tests {
     #[test]
     fn test_parse_datetime_valid() {
         let dt = parse_datetime("2024-01-15 10:30:00").unwrap();
-        assert_eq!(dt.format("%Y-%m-%d %H:%M:%S").to_string(), "2024-01-15 10:30:00");
+        assert_eq!(
+            dt.format("%Y-%m-%d %H:%M:%S").to_string(),
+            "2024-01-15 10:30:00"
+        );
     }
 
     #[test]

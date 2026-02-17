@@ -147,7 +147,15 @@ mod tests {
     fn test_insert_and_get() {
         let (db, _dir) = test_db();
         let id = db
-            .insert("server-pw", "admin", b"encrypted", b"nonce123456!", b"salt", None, "password")
+            .insert(
+                "server-pw",
+                "admin",
+                b"encrypted",
+                b"nonce123456!",
+                b"salt",
+                None,
+                "password",
+            )
             .unwrap();
         assert!(id > 0);
 
@@ -165,9 +173,12 @@ mod tests {
     #[test]
     fn test_list_returns_all_ordered_by_name() {
         let (db, _dir) = test_db();
-        db.insert("charlie", "u1", b"e1", b"n1", b"s1", None, "password").unwrap();
-        db.insert("alpha", "u2", b"e2", b"n2", b"s2", None, "password").unwrap();
-        db.insert("bravo", "u3", b"e3", b"n3", b"s3", None, "password").unwrap();
+        db.insert("charlie", "u1", b"e1", b"n1", b"s1", None, "password")
+            .unwrap();
+        db.insert("alpha", "u2", b"e2", b"n2", b"s2", None, "password")
+            .unwrap();
+        db.insert("bravo", "u3", b"e3", b"n3", b"s3", None, "password")
+            .unwrap();
 
         let records = db.list().unwrap();
         assert_eq!(records.len(), 3);

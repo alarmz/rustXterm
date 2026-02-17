@@ -27,7 +27,7 @@ impl russh::client::Handler for SshHandler {
 
     async fn check_server_key(
         &mut self,
-        _server_public_key: &russh_keys::key::PublicKey,
+        _server_public_key: &russh_keys::PublicKey,
     ) -> Result<bool, Self::Error> {
         // Accept all server keys for now.
         // TODO (Phase 3): Implement known_hosts verification.
@@ -121,7 +121,7 @@ impl SshClient {
         cols: u16,
         rows: u16,
     ) -> Result<russh::Channel<russh::client::Msg>, SshError> {
-        let mut channel = handle
+        let channel = handle
             .channel_open_session()
             .await
             .map_err(|e| SshError::ChannelError(e.to_string()))?;

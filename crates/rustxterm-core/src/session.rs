@@ -158,9 +158,10 @@ mod tests {
         let config = SessionConfig::Shell(ShellConfig {
             shell_path: Some("/bin/zsh".to_string()),
             working_directory: Some("/home/user".to_string()),
-            environment: std::collections::HashMap::from([
-                ("TERM".to_string(), "xterm-256color".to_string()),
-            ]),
+            environment: std::collections::HashMap::from([(
+                "TERM".to_string(),
+                "xterm-256color".to_string(),
+            )]),
         });
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: SessionConfig = serde_json::from_str(&json).unwrap();
