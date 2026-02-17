@@ -8,8 +8,8 @@
 //! - Async read/write over serial connections
 //! - DTR/RTS signal control
 
-pub mod port;
 pub mod config;
+pub mod port;
 
 mod error;
 

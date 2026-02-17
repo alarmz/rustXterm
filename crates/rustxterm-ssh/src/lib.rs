@@ -8,10 +8,10 @@
 //! - SFTP file transfer operations via `russh-sftp`
 //! - SSH channel multiplexing and session handling
 
-pub mod client;
 pub mod auth;
-pub mod sftp;
 pub mod channel;
+pub mod client;
+pub mod sftp;
 
 mod error;
 

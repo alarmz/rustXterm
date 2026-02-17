@@ -124,4 +124,3 @@ impl Default for SshConfig {
         }
     }
 }
-

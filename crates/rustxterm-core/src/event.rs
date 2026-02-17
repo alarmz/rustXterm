@@ -11,10 +11,7 @@ pub enum AppEvent {
     TerminalInput { session_id: String, data: Vec<u8> },
 
     /// Connection state changed.
-    ConnectionStateChanged {
-        session_id: String,
-        state: String,
-    },
+    ConnectionStateChanged { session_id: String, state: String },
 
     /// File transfer progress update.
     TransferProgress {

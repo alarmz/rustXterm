@@ -8,9 +8,9 @@
 //! - Plugin discovery and registration
 //! - Inter-plugin communication and event hooks
 
+pub mod api;
 pub mod loader;
 pub mod registry;
-pub mod api;
 
 mod error;
 

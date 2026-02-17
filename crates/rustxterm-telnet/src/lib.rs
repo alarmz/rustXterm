@@ -9,8 +9,8 @@
 //! - Raw and line-mode input handling
 
 pub mod client;
-pub mod negotiation;
 pub mod codec;
+pub mod negotiation;
 
 mod error;
 

@@ -9,10 +9,10 @@
 //! - SQLite-backed credential database
 //! - SSH key management and passphrase handling
 
-pub mod store;
 pub mod crypto;
-pub mod keyring_backend;
 pub mod database;
+pub mod keyring_backend;
+pub mod store;
 
 mod error;
 

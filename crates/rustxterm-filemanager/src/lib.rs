@@ -10,8 +10,8 @@
 
 pub mod browser;
 pub mod local;
-pub mod remote;
 pub mod operations;
+pub mod remote;
 
 mod error;
 

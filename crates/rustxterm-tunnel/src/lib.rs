@@ -8,10 +8,10 @@
 //! - Dynamic SOCKS proxy forwarding (SSH -D equivalent)
 //! - Tunnel lifecycle management and monitoring
 
-pub mod local_forward;
-pub mod remote_forward;
 pub mod dynamic;
+pub mod local_forward;
 pub mod manager;
+pub mod remote_forward;
 
 mod error;
 
