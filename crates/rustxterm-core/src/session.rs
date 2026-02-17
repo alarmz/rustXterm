@@ -100,7 +100,7 @@ pub struct SerialConfig {
     pub flow_control: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ShellConfig {
     pub shell_path: Option<String>,
     pub working_directory: Option<String>,
@@ -125,12 +125,3 @@ impl Default for SshConfig {
     }
 }
 
-impl Default for ShellConfig {
-    fn default() -> Self {
-        Self {
-            shell_path: None,
-            working_directory: None,
-            environment: std::collections::HashMap::new(),
-        }
-    }
-}
