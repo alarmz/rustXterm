@@ -1,0 +1,8 @@
+# cargo-audit configuration
+# cargo-audit 設定
+
+[advisories]
+# RUSTSEC-2023-0071: rsa timing sidechannel (Marvin Attack)
+# No fix available upstream - pulled in by russh dependency
+# rsa 時序側信道攻擊（Marvin Attack）- 上游尚無修復版本，來自 russh 依賴
+ignore = ["RUSTSEC-2023-0071"]

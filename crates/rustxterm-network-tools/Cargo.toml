@@ -6,7 +6,7 @@ edition.workspace = true
 
 [dependencies]
 rustxterm-core = { path = "../rustxterm-core" }
-trust-dns-resolver = { workspace = true }
+hickory-resolver = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }

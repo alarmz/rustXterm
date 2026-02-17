@@ -71,8 +71,8 @@ serialport = "4"
 # FTP
 suppaftp = { version = "6", features = ["async-rustls"] }
 
-# Network
-trust-dns-resolver = "0.23"
+# Network / DNS
+hickory-resolver = "0.25"
 
 # Tauri
 tauri = "2"
