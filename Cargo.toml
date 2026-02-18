@@ -78,6 +78,9 @@ hickory-resolver = "0.25"
 tauri = "2"
 tauri-build = "2"
 
+# Tokio utilities
+tokio-util = { version = "0.7", features = ["rt"] }
+
 # UUID
 uuid = { version = "1", features = ["v4"] }
 

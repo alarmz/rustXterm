@@ -40,6 +40,24 @@ impl SessionManager {
     pub fn update_last_connected(&self, id: i64) -> Result<(), SessionError> {
         self.db.update_last_connected(id)
     }
+
+    pub fn save_tunnel_config(
+        &self,
+        config: &crate::persistence::TunnelConfig,
+    ) -> Result<i64, SessionError> {
+        self.db.save_tunnel_config(config)
+    }
+
+    pub fn list_tunnel_configs(
+        &self,
+        session_id: i64,
+    ) -> Result<Vec<crate::persistence::TunnelConfig>, SessionError> {
+        self.db.list_tunnel_configs(session_id)
+    }
+
+    pub fn delete_tunnel_config(&self, id: i64) -> Result<bool, SessionError> {
+        self.db.delete_tunnel_config(id)
+    }
 }
 
 #[cfg(test)]

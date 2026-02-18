@@ -5,11 +5,30 @@ export function useMenuEvents(
   onNewTab: () => void,
   onCloseTab: () => void,
   onNewSsh: () => void,
-  onToggleSidebar: () => void
+  onToggleSidebar: () => void,
+  onSplitHorizontal: () => void,
+  onSplitVertical: () => void,
+  onClosePane: () => void
 ) {
   // Store callbacks in refs so the listener never needs to re-register.
-  const callbacks = useRef({ onNewTab, onCloseTab, onNewSsh, onToggleSidebar });
-  callbacks.current = { onNewTab, onCloseTab, onNewSsh, onToggleSidebar };
+  const callbacks = useRef({
+    onNewTab,
+    onCloseTab,
+    onNewSsh,
+    onToggleSidebar,
+    onSplitHorizontal,
+    onSplitVertical,
+    onClosePane,
+  });
+  callbacks.current = {
+    onNewTab,
+    onCloseTab,
+    onNewSsh,
+    onToggleSidebar,
+    onSplitHorizontal,
+    onSplitVertical,
+    onClosePane,
+  };
 
   useEffect(() => {
     const unlistenPromise = listen<string>("menu-event", (event) => {
@@ -25,6 +44,15 @@ export function useMenuEvents(
           break;
         case "toggle-sidebar":
           callbacks.current.onToggleSidebar();
+          break;
+        case "split-horizontal":
+          callbacks.current.onSplitHorizontal();
+          break;
+        case "split-vertical":
+          callbacks.current.onSplitVertical();
+          break;
+        case "close-pane":
+          callbacks.current.onClosePane();
           break;
       }
     });

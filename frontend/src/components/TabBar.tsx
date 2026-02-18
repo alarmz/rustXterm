@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Tab } from "../types";
+import { getFirstLeaf } from "../hooks/paneUtils";
 
 interface TabBarProps {
   tabs: Tab[];
@@ -34,7 +35,7 @@ export default memo(function TabBar({
           }}
         >
           <span className="tab-type-badge">
-            {tab.type === "ssh" ? "SSH" : "SH"}
+            {getFirstLeaf(tab.pane).sessionType === "ssh" ? "SSH" : "SH"}
           </span>
           <span>{tab.title}</span>
           <button

@@ -1,10 +1,13 @@
 use portable_pty::{MasterPty, PtySize};
 use rustxterm_credentials::CredentialStore;
+use rustxterm_filemanager::operations::TransferManager;
 use rustxterm_session::SessionManager;
-use rustxterm_ssh::SshClient;
+use rustxterm_ssh::{SshClient, SshSftpSession};
+use rustxterm_tunnel::TunnelManager;
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use crate::pty_manager::PtyManager;
 
@@ -25,6 +28,9 @@ pub struct AppSessionManager {
     pub pty_manager: PtyManager,
     pub session_db: SessionManager,
     pub credential_store: CredentialStore,
+    pub sftp_sessions: HashMap<String, Arc<SshSftpSession>>,
+    pub transfer_manager: TransferManager,
+    pub tunnel_manager: TunnelManager,
 }
 
 impl AppSessionManager {
@@ -42,6 +48,9 @@ impl AppSessionManager {
             pty_manager: PtyManager::default(),
             session_db,
             credential_store,
+            sftp_sessions: HashMap::new(),
+            transfer_manager: TransferManager::new(),
+            tunnel_manager: TunnelManager::new(),
         })
     }
 

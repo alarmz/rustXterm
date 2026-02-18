@@ -17,6 +17,9 @@ pub enum SshError {
     #[error("ssh protocol error: {0}")]
     Protocol(#[from] russh::Error),
 
+    #[error("sftp error: {0}")]
+    Sftp(String),
+
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -38,6 +41,9 @@ mod tests {
 
         let err = SshError::Timeout;
         assert_eq!(err.to_string(), "timeout");
+
+        let err = SshError::Sftp("no such file".to_string());
+        assert_eq!(err.to_string(), "sftp error: no such file");
     }
 
     #[test]

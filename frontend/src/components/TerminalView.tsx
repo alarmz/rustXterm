@@ -9,6 +9,7 @@ import "@xterm/xterm/css/xterm.css";
 interface Props {
   sessionId: string;
   visible: boolean;
+  isActive?: boolean;
 }
 
 interface PtyOutputPayload {
@@ -16,7 +17,7 @@ interface PtyOutputPayload {
   data: number[];
 }
 
-export default function TerminalView({ sessionId, visible }: Props) {
+export default function TerminalView({ sessionId, visible, isActive }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -107,7 +108,6 @@ export default function TerminalView({ sessionId, visible }: Props) {
             cols: termRef.current.cols,
             rows: termRef.current.rows,
           }).catch(() => {});
-          termRef.current.focus();
         }
       });
     }
@@ -116,11 +116,17 @@ export default function TerminalView({ sessionId, visible }: Props) {
     };
   }, [visible, sessionId]);
 
+  // Focus the terminal when this pane becomes active
+  useEffect(() => {
+    if (isActive && termRef.current) {
+      termRef.current.focus();
+    }
+  }, [isActive]);
+
   return (
     <div
       ref={containerRef}
       className="terminal-view"
-      style={{ display: visible ? "block" : "none" }}
     />
   );
 }

@@ -16,3 +16,4 @@ pub mod remote;
 mod error;
 
 pub use error::FileManagerError;
+pub use rustxterm_ssh::FileEntry;

@@ -11,4 +11,10 @@ tokio = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 tracing = { workspace = true }
+uuid = { workspace = true }
+dirs = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

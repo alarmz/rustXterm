@@ -13,6 +13,9 @@ rustxterm-core = { path = "../rustxterm-core" }
 rustxterm-session = { path = "../rustxterm-session" }
 rustxterm-ssh = { path = "../rustxterm-ssh" }
 rustxterm-credentials = { path = "../rustxterm-credentials" }
+rustxterm-filemanager = { path = "../rustxterm-filemanager" }
+rustxterm-tunnel = { path = "../rustxterm-tunnel" }
+serde_json = { workspace = true }
 tauri = { workspace = true, features = ["devtools"] }
 tokio = { workspace = true }
 serde = { workspace = true }

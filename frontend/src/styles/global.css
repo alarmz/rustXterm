@@ -128,12 +128,74 @@ body,
   overflow: hidden;
 }
 
-.terminal-view {
+/* ── Split pane layout ─────────────────────────────────────── */
+
+.tab-panes {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+.split-pane-container {
+  width: 100%;
+  height: 100%;
+}
+
+.pane-split {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.pane-split-horizontal {
+  flex-direction: column;
+}
+
+.pane-split-vertical {
+  flex-direction: row;
+}
+
+.pane-child {
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pane-leaf {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.pane-leaf.pane-active {
+  box-shadow: inset 0 0 0 1px #0e639c;
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  background: #3c3c3c;
+  z-index: 10;
+}
+
+.drag-handle-vertical {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.drag-handle-horizontal {
+  height: 4px;
+  cursor: row-resize;
+}
+
+.drag-handle:hover {
+  background: #0e639c;
+}
+
+.terminal-view {
+  width: 100%;
+  height: 100%;
   padding: 4px;
 }
 
@@ -365,4 +427,409 @@ body,
 .btn-connect:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── File browser ──────────────────────────────────────────── */
+
+.file-browser {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+}
+
+.fb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  font-size: 14px;
+}
+
+.fb-error {
+  color: #ff8a8a;
+}
+
+.fb-error-bar {
+  background: #4a1c1c;
+  color: #ff8a8a;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid #6b2c2c;
+}
+
+.fb-panels {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.fb-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #3c3c3c;
+  overflow: hidden;
+}
+
+.fb-panel:last-child {
+  border-right: none;
+}
+
+.fb-panel-active {
+  background: #1a1a2e;
+}
+
+.fb-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  font-size: 12px;
+}
+
+.fb-panel-label {
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.fb-path-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.fb-path {
+  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.fb-panel-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.fb-btn {
+  background: transparent;
+  border: 1px solid #3c3c3c;
+  color: #aaa;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.fb-btn:hover {
+  background: #3c3c3c;
+  color: #fff;
+}
+
+.fb-entries {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.fb-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: default;
+  color: #ccc;
+}
+
+.fb-entry:hover {
+  background: #2a2d2e;
+}
+
+.fb-icon {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.fb-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fb-size {
+  color: #888;
+  font-size: 11px;
+  min-width: 60px;
+  text-align: right;
+}
+
+.fb-date {
+  color: #666;
+  font-size: 11px;
+  min-width: 100px;
+}
+
+.fb-entry-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+}
+
+.fb-entry:hover .fb-entry-actions {
+  opacity: 1;
+}
+
+.fb-btn-sm {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 11px;
+}
+
+.fb-btn-sm:hover {
+  background: #3c3c3c;
+  color: #fff;
+}
+
+.fb-btn-danger:hover {
+  color: #f44;
+}
+
+.fb-footer {
+  padding: 4px 8px;
+  border-top: 1px solid #3c3c3c;
+  background: #252526;
+}
+
+/* ── Transfer queue ────────────────────────────────────────── */
+
+.transfer-queue {
+  max-height: 150px;
+  overflow-y: auto;
+  border-top: 1px solid #3c3c3c;
+  background: #252526;
+}
+
+.transfer-queue-empty {
+  padding: 8px 12px;
+  color: #555;
+  font-size: 12px;
+  text-align: center;
+  border-top: 1px solid #3c3c3c;
+  background: #252526;
+}
+
+.transfer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.transfer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.transfer-direction {
+  font-size: 14px;
+}
+
+.transfer-path {
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transfer-status {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #3c3c3c;
+  color: #aaa;
+}
+
+.transfer-status-completed {
+  background: #1a3a1a;
+  color: #6f6;
+}
+
+.transfer-status-failed {
+  background: #4a1c1c;
+  color: #f88;
+}
+
+.transfer-status-cancelled {
+  background: #3a3a1a;
+  color: #cc6;
+}
+
+.transfer-progress-bar {
+  width: 80px;
+  height: 4px;
+  background: #3c3c3c;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.transfer-progress-fill {
+  height: 100%;
+  background: #0e639c;
+  transition: width 0.3s ease;
+}
+
+/* ── Tunnel dialog ───────────────────────────────────────────── */
+
+.tunnel-type-selector {
+  display: flex;
+  gap: 4px;
+}
+
+.tunnel-type-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: #1e1e1e;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tunnel-type-btn:hover {
+  background: #2a2d2e;
+  color: #fff;
+}
+
+.tunnel-type-btn.active {
+  background: #0e639c;
+  border-color: #0e639c;
+  color: #fff;
+}
+
+.tunnel-description {
+  padding: 8px 10px;
+  margin-top: 4px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
+  font-size: 12px;
+  color: #888;
+  min-height: 28px;
+}
+
+/* ── Tunnel list ─────────────────────────────────────────────── */
+
+.tunnel-list {
+  border-top: 1px solid #3c3c3c;
+  background: #252526;
+}
+
+.tunnel-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.tunnel-list-empty {
+  padding: 12px;
+  color: #555;
+  font-size: 12px;
+  text-align: center;
+}
+
+.tunnel-list-entries {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tunnel-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.tunnel-list-item.tunnel-stopped {
+  opacity: 0.5;
+}
+
+.tunnel-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  background: #3c3c3c;
+  color: #aaa;
+}
+
+.tunnel-desc {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tunnel-status {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.tunnel-status-active {
+  background: #1a3a1a;
+  color: #6f6;
+}
+
+.tunnel-status-inactive {
+  background: #3c3c3c;
+  color: #888;
+}
+
+.tunnel-stop-btn {
+  background: transparent;
+  border: 1px solid #3c3c3c;
+  color: #aaa;
+  cursor: pointer;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.tunnel-stop-btn:hover {
+  background: #4a1c1c;
+  border-color: #6b2c2c;
+  color: #f88;
 }

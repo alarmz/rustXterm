@@ -19,7 +19,7 @@ enum ChannelCommand {
 }
 
 /// Handler for SSH client events (server key checking, etc.).
-pub(crate) struct SshHandler;
+pub struct SshHandler;
 
 #[async_trait::async_trait]
 impl russh::client::Handler for SshHandler {
@@ -38,10 +38,19 @@ impl russh::client::Handler for SshHandler {
 /// An SSH client connection with an interactive shell channel.
 pub struct SshClient {
     cmd_tx: mpsc::Sender<ChannelCommand>,
-    handle: russh::client::Handle<SshHandler>,
+    handle: Arc<tokio::sync::Mutex<russh::client::Handle<SshHandler>>>,
 }
 
 impl SshClient {
+    /// Get a shared reference to the underlying SSH connection handle.
+    ///
+    /// Used to open additional channels (e.g. SFTP, port forwarding).
+    /// Returns an `Arc<Mutex<Handle>>` so the handle can be used outside
+    /// std::sync::Mutex guards (lock briefly for each operation).
+    pub fn handle(&self) -> Arc<tokio::sync::Mutex<russh::client::Handle<SshHandler>>> {
+        Arc::clone(&self.handle)
+    }
+
     /// Connect to an SSH server and open an interactive shell.
     ///
     /// Returns the client and a receiver for data coming from the remote shell.
@@ -83,7 +92,13 @@ impl SshClient {
         // Background task: owns the channel, multiplexes reads and writes.
         Self::spawn_channel_task(channel, cmd_rx, data_tx);
 
-        Ok((Self { cmd_tx, handle }, data_rx))
+        Ok((
+            Self {
+                cmd_tx,
+                handle: Arc::new(tokio::sync::Mutex::new(handle)),
+            },
+            data_rx,
+        ))
     }
 
     async fn establish_connection(
@@ -222,7 +237,8 @@ impl SshClient {
     /// Disconnect from the SSH server.
     pub async fn disconnect(self) -> Result<(), SshError> {
         let _ = self.cmd_tx.send(ChannelCommand::Close).await;
-        self.handle
+        let handle = self.handle.lock().await;
+        handle
             .disconnect(russh::Disconnect::ByApplication, "", "en")
             .await?;
         Ok(())

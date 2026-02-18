@@ -7,6 +7,21 @@ use rustxterm_core::session::{SessionConfig, SessionInfo};
 
 use crate::error::SessionError;
 
+/// Persisted tunnel configuration tied to a session.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TunnelConfig {
+    pub id: i64,
+    pub session_id: i64,
+    pub tunnel_type: String,
+    pub local_port: Option<i64>,
+    pub remote_host: Option<String>,
+    pub remote_port: Option<i64>,
+    pub local_host: Option<String>,
+    pub auto_start: bool,
+    pub name: Option<String>,
+    pub sort_order: i32,
+}
+
 pub struct SessionDb {
     conn: Connection,
 }
@@ -41,6 +56,21 @@ impl SessionDb {
                 name TEXT NOT NULL,
                 parent_id INTEGER,
                 sort_order INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS tunnel_configs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
+                tunnel_type TEXT NOT NULL,
+                local_port INTEGER,
+                remote_host TEXT,
+                remote_port INTEGER,
+                local_host TEXT DEFAULT '127.0.0.1',
+                auto_start INTEGER NOT NULL DEFAULT 0,
+                name TEXT,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS sessions (
@@ -168,6 +198,58 @@ impl SessionDb {
             params![id],
         )?;
         Ok(())
+    }
+
+    // ── Tunnel config CRUD ─────────────────────────────────────
+
+    pub fn save_tunnel_config(&self, config: &TunnelConfig) -> Result<i64, SessionError> {
+        self.conn.execute(
+            "INSERT INTO tunnel_configs (session_id, tunnel_type, local_port, remote_host,
+             remote_port, local_host, auto_start, name, sort_order)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                config.session_id,
+                config.tunnel_type,
+                config.local_port,
+                config.remote_host,
+                config.remote_port,
+                config.local_host,
+                config.auto_start,
+                config.name,
+                config.sort_order,
+            ],
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn list_tunnel_configs(&self, session_id: i64) -> Result<Vec<TunnelConfig>, SessionError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, session_id, tunnel_type, local_port, remote_host, remote_port,
+             local_host, auto_start, name, sort_order
+             FROM tunnel_configs WHERE session_id = ?1 ORDER BY sort_order, id",
+        )?;
+        let rows = stmt.query_map(params![session_id], |row| {
+            Ok(TunnelConfig {
+                id: row.get(0)?,
+                session_id: row.get(1)?,
+                tunnel_type: row.get(2)?,
+                local_port: row.get(3)?,
+                remote_host: row.get(4)?,
+                remote_port: row.get(5)?,
+                local_host: row.get(6)?,
+                auto_start: row.get(7)?,
+                name: row.get(8)?,
+                sort_order: row.get(9)?,
+            })
+        })?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(Into::into)
+    }
+
+    pub fn delete_tunnel_config(&self, id: i64) -> Result<bool, SessionError> {
+        let affected = self
+            .conn
+            .execute("DELETE FROM tunnel_configs WHERE id = ?1", params![id])?;
+        Ok(affected > 0)
     }
 
     fn row_to_session_info(row: &rusqlite::Row) -> rusqlite::Result<SessionInfo> {
@@ -393,6 +475,101 @@ mod tests {
         db.update_last_connected(id).unwrap();
         let loaded = db.get(id).unwrap();
         assert!(loaded.last_connected.is_some());
+    }
+
+    // ── Tunnel config tests ─────────────────────────────────────
+
+    fn sample_tunnel_config(session_id: i64) -> TunnelConfig {
+        TunnelConfig {
+            id: 0,
+            session_id,
+            tunnel_type: "local".to_string(),
+            local_port: Some(8080),
+            remote_host: Some("db.internal".to_string()),
+            remote_port: Some(5432),
+            local_host: Some("127.0.0.1".to_string()),
+            auto_start: false,
+            name: Some("DB tunnel".to_string()),
+            sort_order: 0,
+        }
+    }
+
+    #[test]
+    fn test_tunnel_config_save_and_list() {
+        let (db, _dir) = test_db();
+        let session_id = db.insert(&sample_session("Server", 0)).unwrap();
+
+        let config = sample_tunnel_config(session_id);
+        let tc_id = db.save_tunnel_config(&config).unwrap();
+        assert!(tc_id > 0);
+
+        let configs = db.list_tunnel_configs(session_id).unwrap();
+        assert_eq!(configs.len(), 1);
+        assert_eq!(configs[0].id, tc_id);
+        assert_eq!(configs[0].tunnel_type, "local");
+        assert_eq!(configs[0].local_port, Some(8080));
+        assert_eq!(configs[0].remote_host, Some("db.internal".to_string()));
+        assert_eq!(configs[0].remote_port, Some(5432));
+        assert_eq!(configs[0].name, Some("DB tunnel".to_string()));
+        assert!(!configs[0].auto_start);
+    }
+
+    #[test]
+    fn test_tunnel_config_delete() {
+        let (db, _dir) = test_db();
+        let session_id = db.insert(&sample_session("Server", 0)).unwrap();
+        let tc_id = db
+            .save_tunnel_config(&sample_tunnel_config(session_id))
+            .unwrap();
+
+        assert!(db.delete_tunnel_config(tc_id).unwrap());
+        assert!(db.list_tunnel_configs(session_id).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_tunnel_config_delete_nonexistent() {
+        let (db, _dir) = test_db();
+        assert!(!db.delete_tunnel_config(999).unwrap());
+    }
+
+    #[test]
+    fn test_tunnel_config_empty_list() {
+        let (db, _dir) = test_db();
+        let session_id = db.insert(&sample_session("Server", 0)).unwrap();
+        assert!(db.list_tunnel_configs(session_id).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_tunnel_config_multiple() {
+        let (db, _dir) = test_db();
+        let session_id = db.insert(&sample_session("Server", 0)).unwrap();
+
+        let mut c1 = sample_tunnel_config(session_id);
+        c1.sort_order = 1;
+        c1.name = Some("Tunnel A".into());
+        db.save_tunnel_config(&c1).unwrap();
+
+        let mut c2 = sample_tunnel_config(session_id);
+        c2.tunnel_type = "dynamic".to_string();
+        c2.sort_order = 0;
+        c2.name = Some("SOCKS".into());
+        db.save_tunnel_config(&c2).unwrap();
+
+        let configs = db.list_tunnel_configs(session_id).unwrap();
+        assert_eq!(configs.len(), 2);
+        // Ordered by sort_order
+        assert_eq!(configs[0].name, Some("SOCKS".to_string()));
+        assert_eq!(configs[1].name, Some("Tunnel A".to_string()));
+    }
+
+    #[test]
+    fn test_tunnel_config_serde_roundtrip() {
+        let config = sample_tunnel_config(42);
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: TunnelConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.session_id, 42);
+        assert_eq!(deserialized.tunnel_type, "local");
+        assert_eq!(deserialized.local_port, Some(8080));
     }
 
     #[test]

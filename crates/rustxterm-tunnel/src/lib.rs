@@ -16,3 +16,4 @@ pub mod remote_forward;
 mod error;
 
 pub use error::TunnelError;
+pub use manager::{TunnelInfo, TunnelManager, TunnelType};
